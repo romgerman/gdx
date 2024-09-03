@@ -22,6 +22,8 @@ static func _render_node(n: GdxParser.PControlNode, bindings: Dictionary, out: G
 			result = Label.new()
 		"TextureRect":
 			result = TextureRect.new()
+		"Button":
+			result = Button.new()
 		_:
 			result = null
 

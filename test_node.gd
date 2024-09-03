@@ -4,10 +4,10 @@ func _ready() -> void:
 	var output = GdxRender.render_text('
 		<TextureRect texture="res://icon.svg" position:="pos" name="HelloTexture" ref:="texture_ref" />
 		<Control>
-			<Label text="Hello world" position:="pos" />
+			<Label text="Hello \'world\'" position:="pos" />
 			<Label text="Hello world" />
 			<Control>
-				<Label text:="text" position:="pos2" />
+				<Button text:="text" position:="pos2" ref:="btn" />
 			</Control>
 		</Control>
 	', self, {
@@ -21,3 +21,8 @@ func _ready() -> void:
 	tween.tween_property(ref, "scale", Vector2(1.2, 1.2), 0.25).set_delay(0.1)
 	tween.tween_property(ref, "scale", Vector2.ONE, 0.25).set_delay(0.1)
 	tween.play()
+
+	var btn := output.refs.btn as Button
+	btn.pressed.connect(func ():
+		print("Button pressed")
+	)
