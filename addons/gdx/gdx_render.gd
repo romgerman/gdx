@@ -13,19 +13,19 @@ static func render_text(text: String, root_node: Node, bindings: Dictionary = {}
 		root_node.add_child(node)
 	return out
 
+static var _control_map: Dictionary = {
+	"Control" = Control,
+	"Panel" = Panel,
+	"Label" = Label,
+	"TextureRect" = TextureRect,
+	"Button" = Button
+}
+
 static func _render_node(n: GdxParser.PControlNode, bindings: Dictionary, out: GdxRenderOutput) -> Node:
 	var result: Node
-	match n.type_name:
-		"Control":
-			result = Control.new()
-		"Label":
-			result = Label.new()
-		"TextureRect":
-			result = TextureRect.new()
-		"Button":
-			result = Button.new()
-		_:
-			result = null
+
+	if _control_map.has(n.type_name):
+		result = _control_map.get(n.type_name).new()
 
 	if result != null:
 		for param in n.params:
