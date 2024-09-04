@@ -3,7 +3,7 @@ class_name GdxRender
 class GdxRenderOutput:
 	var refs: Dictionary = {}
 
-static func render_text(text: String, root_node: Node, bindings: Dictionary = {}) -> GdxRenderOutput:
+static func render_text(text: String, root_node: Node, bindings: Variant = {}) -> GdxRenderOutput:
 	var out = GdxRenderOutput.new()
 	var parser := GdxParser.new()
 	var root := parser.parse(GdxLexer.new(text))
@@ -21,7 +21,7 @@ static var _control_map: Dictionary = {
 	"Button" = Button
 }
 
-static func _render_node(n: GdxParser.PControlNode, bindings: Dictionary, out: GdxRenderOutput) -> Node:
+static func _render_node(n: GdxParser.PControlNode, bindings: Variant, out: GdxRenderOutput) -> Node:
 	var result: Node
 
 	if _control_map.has(n.type_name):

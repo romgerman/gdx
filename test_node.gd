@@ -1,5 +1,10 @@
 extends Control
 
+class Model:
+	var pos := Vector2(100, 100)
+	var pos2 := Vector2(200, 200)
+	var text := "No hello"
+
 func _ready() -> void:
 	var output = GdxRender.render_text('
 		<TextureRect texture="res://icon.svg" position:="pos" name="HelloTexture" ref:="texture_ref" />
@@ -10,11 +15,7 @@ func _ready() -> void:
 				<Button text:="text" position:="pos2" ref:="btn" />
 			</Control>
 		</Control>
-	', self, {
-		"pos": Vector2(100, 100),
-		"pos2": Vector2(200, 200),
-		"text": "No hello"
-	})
+	', self, Model.new())
 
 	var ref := output.refs.texture_ref as TextureRect
 	var tween = create_tween().set_trans(Tween.TRANS_SINE).set_loops()
