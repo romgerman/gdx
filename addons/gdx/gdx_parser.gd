@@ -14,6 +14,7 @@ class PControlNode extends PNode:
 	var params: Array[PControlNodeParam] = []
 
 class PControlNodeParam:
+	var value_type: GdxLexer.TokenType = GdxLexer.TokenType.Text
 	var key: String
 	var value: String
 	var bound: bool = false
@@ -149,6 +150,7 @@ func _parse_control_node_param():
 
 	var param_value = token.text
 	var param = PControlNodeParam.new()
+	param.value_type = token.type
 	param.key = param_name
 	param.value = param_value
 	param.bound = is_bound

@@ -7,7 +7,12 @@ class Model:
 
 func _ready() -> void:
 	var output = GdxRender.render_text('
-		<TextureRect texture="res://icon.svg" position:="pos" name="HelloTexture" ref:="texture_ref" />
+		<TextureRect texture="res://icon.svg" position:="pos" name="HelloTexture" ref:="texture_ref">
+			# <TweenNode on="mouse_entered">
+			# 	<TweenProperty prop_name="scale" value:="Vector2(1.2, 1.2)" duration:="0.25" delay:="0.1" />
+			# 	<TweenProperty prop_name="scale" value:="Vector2(1, 1)" duration:="0.25" delay:="0.1" />
+			# </TweenNode>
+		</TextureRect>
 		<Control>
 			<Label text="Hello \'world\'" position:="pos" />
 			<Label text="Hello world" />

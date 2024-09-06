@@ -33,7 +33,13 @@ static func _render_node(n: GdxParser.PControlNode, bindings: Variant, out: GdxR
 				if param.key == "ref":
 					out.refs[param.value] = result
 				else:
-					result.set(param.key, bindings[param.value])
+					if param.value_type == GdxLexer.TokenType.Number:
+						if '.' in param.value:
+							result.set(param.key, float(bindings[param.value]))
+						else:
+							result.set(param.key, int(bindings[param.value]))
+					else:
+						result.set(param.key, bindings[param.value])
 			else:
 				if "res://" in param.value:
 					var res = ResourceLoader.load(param.value)

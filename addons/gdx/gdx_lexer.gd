@@ -45,6 +45,15 @@ func next() -> Token:
 			line += 1
 			column = 0
 			continue
+		elif text[index] == "#":
+			_advance()
+			while index < text.length():
+				if text[index] != "\n":
+					_advance()
+				else:
+					_advance()
+					break
+			continue
 		elif text[index] == "<":
 			var token = Token.new(TokenType.OpenTag, line, column)
 			token.text = "<"
