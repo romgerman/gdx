@@ -3,16 +3,11 @@ extends Control
 class Model:
 	var pos := Vector2(100, 100)
 	var pos2 := Vector2(200, 200)
-	var text := "No hello"
+	var text := "Hello \"world\""
 
 func _ready() -> void:
 	var output = GdxRender.render_text('
-		<TextureRect texture="res://icon.svg" position:="pos" name="HelloTexture" ref:="texture_ref">
-			# <TweenNode on="mouse_entered">
-			# 	<TweenProperty prop_name="scale" value:="Vector2(1.2, 1.2)" duration:="0.25" delay:="0.1" />
-			# 	<TweenProperty prop_name="scale" value:="Vector2(1, 1)" duration:="0.25" delay:="0.1" />
-			# </TweenNode>
-		</TextureRect>
+		<TextureRect texture="res://icon.svg" position:="pos" name="HelloTexture" ref:="texture_ref" />
 		<Control>
 			<Label text="Hello \'world\'" position:="pos" />
 			<Label text="Hello world" />

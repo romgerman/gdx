@@ -19,6 +19,9 @@ class Token:
 	var line: int = 0
 	var column: int = 0
 
+	var token_type_name:
+		get: return TokenType.find_key(type)
+
 	func _init(_type: TokenType, _line: int, _column: int) -> void:
 		self.type = _type
 		self.line = _line
@@ -26,8 +29,8 @@ class Token:
 
 var text: String = ""
 var index := 0
-var line: int = 0
-var column: int = 0
+var line: int = 1
+var column: int = 1
 
 func _init(_text: String) -> void:
 	self.text = _text
@@ -43,7 +46,7 @@ func next() -> Token:
 		elif text[index] == "\n":
 			index += 1
 			line += 1
-			column = 0
+			column = 1
 			continue
 		elif text[index] == "#":
 			_advance()
