@@ -176,7 +176,7 @@ func _parse_control_node_param(params: Array[PControlNodeParam]):
 	if !_take(GdxLexer.TokenType.Assign, meta): return false
 
 	var param_value = token.text
-	if !_take_any([GdxLexer.TokenType.Text, GdxLexer.TokenType.Number], meta):
+	if !_take_any([GdxLexer.TokenType.Text], meta):
 		return false
 
 	var param = PControlNodeParam.new()
@@ -197,7 +197,7 @@ func _parse_control_node_directive(directives: Array[PControlNodeDirective]):
 	if !_take(GdxLexer.TokenType.Assign, meta): return false
 
 	var param_value = token.text
-	if !_take_any([GdxLexer.TokenType.Text, GdxLexer.TokenType.Number], meta):
+	if !_take_any([GdxLexer.TokenType.Text], meta):
 		return false
 
 	var param = PControlNodeDirective.new()

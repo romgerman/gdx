@@ -6,7 +6,7 @@ enum TokenType {
 	CloseTag, # >
 	Identifier, # Label
 	Text, # "Text"
-	Number, # 123 or 3.14
+	#Number, # 123 or 3.14
 	Assign, # =
 	FwdSlash, # /
 	Binding, # :
@@ -103,19 +103,6 @@ func next() -> Token:
 
 			while index < text.length():
 				if IDENTIFIER_REGEX.search(text[index]) != null:
-					token.text += text[index]
-					_advance()
-				else:
-					break
-
-			return token
-		elif NUMBER_REGEX.search(text[index]) != null:
-			var token = Token.new(TokenType.Number, line, column)
-			token.text = text[index]
-			_advance()
-
-			while index < text.length():
-				if NUMBER_REGEX.search(text[index]) != null:
 					token.text += text[index]
 					_advance()
 				else:

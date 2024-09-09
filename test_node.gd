@@ -15,8 +15,8 @@ func _ready() -> void:
 			<Control>
 				<Button text:="text" position:="pos2" ref:="btn" />
 			</Control>
+			<ColorRect :for="5" size:="rect_size" />
 			# <HBox anchor_left:="0" anchor_right:="1">
-			# 	<ColorRect :for="5" size:="rect_size" />
 			# </HBox>
 		</Control>
 	', self, Model.new())
