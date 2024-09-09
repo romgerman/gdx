@@ -35,7 +35,7 @@ var column: int = 1
 func _init(_text: String) -> void:
 	self.text = _text
 
-var IDENTIFIER_REGEX = RegEx.create_from_string("_?[A-Za-z0-9]")
+var IDENTIFIER_REGEX = RegEx.create_from_string("_?[A-Za-z0-9_]")
 var NUMBER_REGEX = RegEx.create_from_string("[0-9]+\\.?[0-9]+")
 
 func next() -> Token:

@@ -4,6 +4,7 @@ class Model:
 	var pos := Vector2(100, 100)
 	var pos2 := Vector2(200, 200)
 	var text := "Hello \"world\""
+	var rect_size := Vector2(50, 20)
 
 func _ready() -> void:
 	var output = GdxRender.render_text('
@@ -14,6 +15,9 @@ func _ready() -> void:
 			<Control>
 				<Button text:="text" position:="pos2" ref:="btn" />
 			</Control>
+			# <HBox anchor_left:="0" anchor_right:="1">
+			# 	<ColorRect :for="5" size:="rect_size" />
+			# </HBox>
 		</Control>
 	', self, Model.new())
 

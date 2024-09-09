@@ -12,12 +12,17 @@ class PControlNode extends PNode:
 	var type_name: String
 	var nodes: Array[PNode] = []
 	var params: Array[PControlNodeParam] = []
+	var directives: Array[PControlNodeDirective] = []
 
 class PControlNodeParam:
 	var value_type: GdxLexer.TokenType = GdxLexer.TokenType.Text
 	var key: String
 	var value: String
 	var bound: bool = false
+
+class PControlNodeDirective:
+	var name: String
+	var value: String
 
 var token: GdxLexer.Token
 var lexer: GdxLexer
@@ -100,7 +105,10 @@ func _parse_control_node(nodes: Array[PNode]):
 
 	if !_take(GdxLexer.TokenType.Identifier, meta): return false
 
-	while self.token.type == GdxLexer.TokenType.Identifier:
+	while token.type == GdxLexer.TokenType.Binding:
+		if !_parse_control_node_directive(ctrl_node.directives): return false
+
+	while token.type == GdxLexer.TokenType.Identifier:
 		if !_parse_control_node_param(ctrl_node.params): return false
 
 	# Self-closing node
@@ -177,4 +185,23 @@ func _parse_control_node_param(params: Array[PControlNodeParam]):
 	param.value = param_value
 	param.bound = is_bound
 	params.push_back(param)
+	return true
+
+func _parse_control_node_directive(directives: Array[PControlNodeDirective]):
+	var meta = " while parsing node directive"
+
+	if !_take(GdxLexer.TokenType.Binding, meta): return false
+
+	var param_name = token.text
+	if !_take(GdxLexer.TokenType.Identifier, meta): return false
+	if !_take(GdxLexer.TokenType.Assign, meta): return false
+
+	var param_value = token.text
+	if !_take_any([GdxLexer.TokenType.Text, GdxLexer.TokenType.Number], meta):
+		return false
+
+	var param = PControlNodeDirective.new()
+	param.name = param_name
+	param.value = param_value
+	directives.push_back(param)
 	return true
