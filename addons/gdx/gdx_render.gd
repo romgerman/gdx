@@ -27,23 +27,23 @@ static var _directive_map: Dictionary = {
 	"for" = _for_directive
 }
 
-static func _render_node(root: Node, n: GdxParser.PControlNode, bindings: Variant, out: GdxRenderOutput, skip_directives: bool = false):
+static func _render_node(root: Node, n: GdxParser.GdxCtrlNode, bindings: Variant, out: GdxRenderOutput, skip_directives: bool = false):
 	var result: Node
 
-	if _control_map.has(n.type_name):
-		result = _control_map.get(n.type_name).new()
+	if _control_map.has(n.name):
+		result = _control_map.get(n.name).new()
 		for param in n.params:
 			if param.bound:
 				if param.key == "ref":
-					out.refs[param.value] = result
+					out.refs[param.value.text] = result
 				else:
-					result.set(param.key, bindings[param.value])
+					result.set(param.key, bindings[param.value.text])
 			else:
-				if "res://" in param.value:
-					var res = ResourceLoader.load(param.value)
+				if "res://" in param.value.text:
+					var res = ResourceLoader.load(param.value.text)
 					result.set(param.key, res)
 				else:
-					result.set(param.key, param.value)
+					result.set(param.key, param.value.text)
 		if not skip_directives:
 			for directive in n.directives:
 				if _directive_map.has(directive.name):
@@ -55,10 +55,14 @@ static func _render_node(root: Node, n: GdxParser.PControlNode, bindings: Varian
 		if skip_directives or n.directives.size() == 0:
 			root.add_child(result)
 	else:
-		printerr("Control with type \"" + n.type_name + "\" not found")
+		printerr("Control with type \"" + n.name + "\" not found")
 
-static func _for_directive(root: Node, node: GdxParser.PControlNode, value: String, bindings: Variant, out: GdxRenderOutput):
-	var count = int(value)
+static func _for_directive(root: Node, node: GdxParser.GdxCtrlNode, value: GdxLexer.Token, bindings: Variant, out: GdxRenderOutput):
+	if value.type != GdxLexer.TokenType.Number:
+		print("Expected Number but got ", value.token_type_name, "=", value.text)
+		return
+
+	var count = int(value.text)
 
 	for i in range(count):
 		_render_node(root, node, bindings, out, true)
