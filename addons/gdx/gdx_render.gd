@@ -37,7 +37,10 @@ static func _render_node(root: Node, n: GdxParser.GdxCtrlNode, bindings: Variant
 				if param.key == "ref":
 					out.refs[param.value.text] = result
 				else:
-					result.set(param.key, bindings[param.value.text])
+					if param.value.type == GdxLexer.TokenType.Identifier:
+						result.set(param.key, bindings[param.value.text])
+					else:
+						result.set(param.key, _token_to_value(param.value))
 			else:
 				if "res://" in param.value.text:
 					var res = ResourceLoader.load(param.value.text)
@@ -57,12 +60,39 @@ static func _render_node(root: Node, n: GdxParser.GdxCtrlNode, bindings: Variant
 	else:
 		printerr("Control with type \"" + n.name + "\" not found")
 
-static func _for_directive(root: Node, node: GdxParser.GdxCtrlNode, value: GdxLexer.Token, bindings: Variant, out: GdxRenderOutput):
-	if value.type != GdxLexer.TokenType.Number:
-		print("Expected Number but got ", value.token_type_name, "=", value.text)
+static func _for_directive(root: Node, node: GdxParser.GdxCtrlNode, expr: GdxParser.GdxCtrlExpression, bindings: Variant, out: GdxRenderOutput):
+	if not expr:
+		printerr("for directive expression is empty")
 		return
 
-	var count = int(value.text)
+	if expr.left.type != GdxLexer.TokenType.Identifier:
+		printerr("Expected Identifier but got ", expr.left.token_type_name, "=", expr.text)
+		return
+
+	if expr.op.type != GdxLexer.TokenType.Keyword:
+		printerr("Expected Keyword (in) but got ", expr.op.token_type_name, "=", expr.text)
+		return
+
+	if expr.right.type != GdxLexer.TokenType.Number:
+		printerr("Expected Number but got ", expr.right.token_type_name, "=", expr.text)
+		return
+
+	var count = _token_to_value(expr.right)
 
 	for i in range(count):
 		_render_node(root, node, bindings, out, true)
+
+static func _token_to_value(token: GdxLexer.Token):
+	if token.type == GdxLexer.TokenType.Identifier or token.type == GdxLexer.TokenType.Keyword:
+		if token.text == "true":
+			return true
+		elif token.text == "false":
+			return false
+	elif token.type == GdxLexer.TokenType.Number:
+		if "." in token.text:
+			return float(token.text)
+		else:
+			return int(token.text)
+	else:
+		printerr("Cannot convert ", token.token_type_name, " to value")
+		return null

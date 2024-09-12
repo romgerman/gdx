@@ -1,4 +1,76 @@
+extends GdxBaseParser
 class_name GdxParser
+
+# Base parser class
+
+class GdxBaseParser:
+	var token: GdxLexer.Token
+	var lexer: GdxLexer
+	var supress_errors = false
+
+	func parse(lex: GdxLexer) -> GdxNode:
+		self.lexer = lex
+		self.token = lex.next()
+		return GdxNode.new()
+
+	func _take(token_type: GdxLexer.TokenType, meta: String = ""):
+		if token.type == token_type:
+			token = lexer.next()
+			return true
+		else:
+			if not supress_errors:
+				printerr(
+					"Unexpected token at ", token.line, ":", token.column,
+					". Expected ",
+					GdxLexer.TokenType.find_key(token_type),
+					", got ",
+					GdxLexer.TokenType.find_key(token.type),
+					meta
+				)
+			return false
+
+	func _take_any(token_types: Array[GdxLexer.TokenType], meta: String = ""):
+		var found = false
+		var err_result: Array[String] = []
+
+		for token_type in token_types:
+			if token.type == token_type:
+				found = true
+				break
+			else:
+				err_result.push_back(GdxLexer.TokenType.find_key(token_type))
+
+		if found:
+			token = lexer.next()
+			return true
+		else:
+			if not supress_errors:
+				printerr(
+					"Unexpected token at ", token.line, ":", token.column,
+					". Expected ",
+					" or ".join(err_result),
+					", got ",
+					GdxLexer.TokenType.find_key(token.type),
+					meta
+				)
+			return false
+
+	func _expect(token_type: GdxLexer.TokenType, meta: String = ""):
+		if token.type == token_type:
+			return true
+		else:
+			if not supress_errors:
+				printerr(
+					"Unexpected token at ", token.line, ":", token.column,
+					". Expected ",
+					GdxLexer.TokenType.find_key(token_type),
+					", got ",
+					GdxLexer.TokenType.find_key(token.type),
+					meta
+				)
+			return false
+
+# Node classes
 
 class GdxNode:
 	var line: int = 0
@@ -22,72 +94,41 @@ class GdxCtrlNodeParam:
 
 class GdxCtrlNodeDirective:
 	var name: String
-	var value: GdxLexer.Token
+	var value: GdxCtrlExpression
 
-var token: GdxLexer.Token
-var lexer: GdxLexer
+class GdxCtrlExpression:
+	var left: GdxLexer.Token
+	var op: GdxLexer.Token
+	var right: GdxLexer.Token
+
+# Expression parser
+
+class GdxExpressionParser extends GdxBaseParser:
+	func parse(lex: GdxLexer):
+		super(lex)
+		var left = token
+		if !_take_any([GdxLexer.TokenType.Identifier, GdxLexer.TokenType.Number]):
+			return null
+		var op = token
+		if !_take_any([GdxLexer.TokenType.Operator, GdxLexer.TokenType.Keyword]):
+			return null
+		var right = token
+		if !_take_any([GdxLexer.TokenType.Identifier, GdxLexer.TokenType.Number]):
+			return null
+		var expr := GdxCtrlExpression.new()
+		expr.left = left
+		expr.op = op
+		expr.right = right
+		return expr
+
+# Root parser
 
 func parse(lex: GdxLexer) -> GdxRootNode:
-	self.lexer = lex
-	self.token = lex.next()
+	super(lex)
 
 	var root = GdxRootNode.new()
 	_parse_control_nodes(root.nodes)
 	return root
-
-func _take(token_type: GdxLexer.TokenType, meta: String = ""):
-	if token.type == token_type:
-		token = lexer.next()
-		return true
-	else:
-		printerr(
-			"Unexpected token at ", token.line, ":", token.column,
-			". Expected ",
-			GdxLexer.TokenType.find_key(token_type),
-			", got ",
-			GdxLexer.TokenType.find_key(token.type),
-			meta
-		)
-		return false
-
-func _take_any(token_types: Array[GdxLexer.TokenType], meta: String = ""):
-	var found = false
-	var err_result: Array[String] = []
-
-	for token_type in token_types:
-		if token.type == token_type:
-			found = true
-			break
-		else:
-			err_result.push_back(GdxLexer.TokenType.find_key(token_type))
-
-	if found:
-		token = lexer.next()
-		return true
-	else:
-		printerr(
-			"Unexpected token at ", token.line, ":", token.column,
-			". Expected ",
-			" or ".join(err_result),
-			", got ",
-			GdxLexer.TokenType.find_key(token.type),
-			meta
-		)
-		return false
-
-func _expect(token_type: GdxLexer.TokenType, meta: String = ""):
-	if token.type == token_type:
-		return true
-	else:
-		printerr(
-			"Unexpected token at ", token.line, ":", token.column,
-			". Expected ",
-			GdxLexer.TokenType.find_key(token_type),
-			", got ",
-			GdxLexer.TokenType.find_key(token.type),
-			meta
-		)
-		return false
 
 func _parse_control_nodes(nodes: Array[GdxNode]):
 	while token.type != GdxLexer.TokenType.EOF:
@@ -203,7 +244,14 @@ func _parse_control_node_directive(directives: Array[GdxCtrlNodeDirective]):
 	if !_take(GdxLexer.TokenType.Assign, meta): return false
 
 	var lex := GdxLexer.new(token.text)
-	var param_value = lex.next()
+	var expr_parser := GdxExpressionParser.new()
+	expr_parser.supress_errors = true
+	var param_value = expr_parser.parse(lex)
+
+	if not param_value:
+		param_value = GdxCtrlExpression.new()
+		param_value.left = GdxLexer.new(token.text).next()
+
 	if !_take(GdxLexer.TokenType.Text, meta):
 		return false
 

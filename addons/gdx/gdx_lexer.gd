@@ -10,6 +10,8 @@ enum TokenType {
 	Assign, # =
 	FwdSlash, # /
 	Binding, # :
+	Keyword, # true, false, in
+	Operator, # +, -, *, /
 	EOF, # End of file
 }
 
@@ -37,6 +39,7 @@ func _init(_text: String) -> void:
 
 var IDENTIFIER_REGEX = RegEx.create_from_string("^(_[A-Za-z0-9_]|[A-Za-z_]+[0-9]*)")
 var NUMBER_REGEX = RegEx.create_from_string("^([0-9]+\\.?[0-9]+|[0-9]+)")
+var OPERATOR_REGEX = RegEx.create_from_string("^(\\+|-|\\*|/)")
 
 func next() -> Token:
 	while index < text.length():
@@ -82,6 +85,11 @@ func next() -> Token:
 			token.text = "/"
 			_advance()
 			return token
+		elif OPERATOR_REGEX.search(text[index]) != null:
+			var token = Token.new(TokenType.Operator, line, column)
+			token.text = OPERATOR_REGEX.search(text.substr(index)).get_string()
+			_advance(token.text.length())
+			return token
 		elif text[index] == "\"":
 			var token = Token.new(TokenType.Text, line, column)
 			token.text = ""
@@ -100,12 +108,14 @@ func next() -> Token:
 			var token = Token.new(TokenType.Number, line, column)
 			token.text = NUMBER_REGEX.search(text.substr(index)).get_string()
 			_advance(token.text.length())
-
 			return token
 		elif IDENTIFIER_REGEX.search(text[index]) != null:
 			var token = Token.new(TokenType.Identifier, line, column)
 			token.text = IDENTIFIER_REGEX.search(text.substr(index)).get_string()
 			_advance(token.text.length())
+
+			if token.text == "true" or token.text == "false" or token.text == "in":
+				token.type = TokenType.Keyword
 
 			return token
 		else:
