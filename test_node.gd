@@ -21,6 +21,8 @@ func _ready() -> void:
 		</Control>
 	', self, Model.new())
 
+	if not output: return
+
 	var ref := output.refs.texture_ref as TextureRect
 	var tween = create_tween().set_trans(Tween.TRANS_SINE).set_loops()
 	tween.tween_property(ref, "scale", Vector2(1.2, 1.2), 0.25).set_delay(0.1)

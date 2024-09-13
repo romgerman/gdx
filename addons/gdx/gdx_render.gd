@@ -8,10 +8,15 @@ static func render_text(text: String, root_node: Node, bindings: Variant = {}) -
 	var out = GdxRenderOutput.new()
 	var parser := GdxParser.new()
 	var root := parser.parse(GdxLexer.new(text))
-	for n in root.nodes:
-		var node = _render_node(root_node, n, bindings, out)
-		out.nodes.push_back(node)
-	return out
+	if parser.errors.size() == 0:
+		for n in root.nodes:
+			var node = _render_node(root_node, n, bindings, out)
+			out.nodes.push_back(node)
+		return out
+	else:
+		for err in parser.errors:
+			printerr(err)
+		return null
 
 static var _control_map: Dictionary = {
 	"Control" = Control,
@@ -62,7 +67,7 @@ static func _render_node(root: Node, n: GdxParser.GdxCtrlNode, bindings: Variant
 
 static func _for_directive(root: Node, node: GdxParser.GdxCtrlNode, expr: GdxParser.GdxCtrlExpression, bindings: Variant, out: GdxRenderOutput):
 	if not expr:
-		printerr("for directive expression is empty")
+		printerr("Directive expression is empty")
 		return
 
 	if expr.left.type != GdxLexer.TokenType.Identifier:

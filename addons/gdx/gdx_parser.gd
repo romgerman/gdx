@@ -6,30 +6,28 @@ class_name GdxParser
 class GdxBaseParser:
 	var token: GdxLexer.Token
 	var lexer: GdxLexer
-	var supress_errors = false
+	var errors: Array[String] = []
 
 	func parse(lex: GdxLexer) -> GdxNode:
 		self.lexer = lex
 		self.token = lex.next()
 		return GdxNode.new()
 
-	func _take(token_type: GdxLexer.TokenType, meta: String = ""):
+	func take(token_type: GdxLexer.TokenType, meta: String = ""):
 		if token.type == token_type:
 			token = lexer.next()
 			return true
 		else:
-			if not supress_errors:
-				printerr(
-					"Unexpected token at ", token.line, ":", token.column,
-					". Expected ",
-					GdxLexer.TokenType.find_key(token_type),
-					", got ",
-					GdxLexer.TokenType.find_key(token.type),
-					meta
-				)
+			_push_error("Unexpected token at {0}:{1}. Expected {2}, got {3} {4}".format([
+				token.line,
+				token.column,
+				GdxLexer.TokenType.find_key(token_type),
+				GdxLexer.TokenType.find_key(token.type),
+				meta
+			]))
 			return false
 
-	func _take_any(token_types: Array[GdxLexer.TokenType], meta: String = ""):
+	func take_any(token_types: Array[GdxLexer.TokenType], meta: String = ""):
 		var found = false
 		var err_result: Array[String] = []
 
@@ -44,31 +42,30 @@ class GdxBaseParser:
 			token = lexer.next()
 			return true
 		else:
-			if not supress_errors:
-				printerr(
-					"Unexpected token at ", token.line, ":", token.column,
-					". Expected ",
-					" or ".join(err_result),
-					", got ",
-					GdxLexer.TokenType.find_key(token.type),
-					meta
-				)
+			_push_error("Unexpected token at {0}:{1}. Expected {2}, got {3} {4}".format([
+				token.line,
+				token.column,
+				" or ".join(err_result),
+				GdxLexer.TokenType.find_key(token.type),
+				meta
+			]))
 			return false
 
-	func _expect(token_type: GdxLexer.TokenType, meta: String = ""):
+	func expect(token_type: GdxLexer.TokenType, meta: String = ""):
 		if token.type == token_type:
 			return true
 		else:
-			if not supress_errors:
-				printerr(
-					"Unexpected token at ", token.line, ":", token.column,
-					". Expected ",
-					GdxLexer.TokenType.find_key(token_type),
-					", got ",
-					GdxLexer.TokenType.find_key(token.type),
-					meta
-				)
+			_push_error("Unexpected token at {0}:{1}. Expected {2}, got {3} {4}".format([
+				token.line,
+				token.column,
+				GdxLexer.TokenType.find_key(token_type),
+				GdxLexer.TokenType.find_key(token.type),
+				meta
+			]))
 			return false
+
+	func _push_error(text: String):
+		errors.push_back(text)
 
 # Node classes
 
@@ -107,13 +104,13 @@ class GdxExpressionParser extends GdxBaseParser:
 	func parse(lex: GdxLexer):
 		super(lex)
 		var left = token
-		if !_take_any([GdxLexer.TokenType.Identifier, GdxLexer.TokenType.Number]):
+		if !take_any([GdxLexer.TokenType.Identifier, GdxLexer.TokenType.Number]):
 			return null
 		var op = token
-		if !_take_any([GdxLexer.TokenType.Operator, GdxLexer.TokenType.Keyword]):
+		if !take_any([GdxLexer.TokenType.Operator, GdxLexer.TokenType.Keyword]):
 			return null
 		var right = token
-		if !_take_any([GdxLexer.TokenType.Identifier, GdxLexer.TokenType.Number]):
+		if !take_any([GdxLexer.TokenType.Identifier, GdxLexer.TokenType.Number]):
 			return null
 		var expr := GdxCtrlExpression.new()
 		expr.left = left
@@ -136,15 +133,15 @@ func _parse_control_nodes(nodes: Array[GdxNode]):
 	return true
 
 func _parse_control_node(nodes: Array[GdxNode]):
-	var meta = " while parsing node";
-	if !_take(GdxLexer.TokenType.OpenTag, meta): return false
+	var meta = "while parsing node";
+	if !take(GdxLexer.TokenType.OpenTag, meta): return false
 
 	var ctrl_node = GdxCtrlNode.new()
 	ctrl_node.name = token.text
 	ctrl_node.line = token.line
 	ctrl_node.column = token.column
 
-	if !_take(GdxLexer.TokenType.Identifier, meta): return false
+	if !take(GdxLexer.TokenType.Identifier, meta): return false
 
 	while token.type == GdxLexer.TokenType.Binding:
 		if !_parse_control_node_directive(ctrl_node.directives): return false
@@ -155,23 +152,23 @@ func _parse_control_node(nodes: Array[GdxNode]):
 	# Self-closing node
 	if token.type == GdxLexer.TokenType.FwdSlash:
 		token = lexer.next()
-		if !_take(GdxLexer.TokenType.CloseTag, meta):
+		if !take(GdxLexer.TokenType.CloseTag, meta):
 			return false
 		nodes.push_back(ctrl_node)
 		return true
 
-	if !_take(GdxLexer.TokenType.CloseTag, meta): return false
+	if !take(GdxLexer.TokenType.CloseTag, meta): return false
 
 	# Parse nested nodes
-	if _expect(GdxLexer.TokenType.OpenTag, meta):
+	if expect(GdxLexer.TokenType.OpenTag, meta):
 		if lexer.peek().type == GdxLexer.TokenType.FwdSlash:
 			token = lexer.next()
 			token = lexer.next()
-			if _expect(GdxLexer.TokenType.Identifier, meta):
+			if expect(GdxLexer.TokenType.Identifier, meta):
 				var identifier = token.text
 				if identifier == ctrl_node.name:
 					token = lexer.next()
-					if !_take(GdxLexer.TokenType.CloseTag, meta): return false
+					if !take(GdxLexer.TokenType.CloseTag, meta): return false
 					nodes.push_back(ctrl_node)
 					return true
 				else:
@@ -182,15 +179,15 @@ func _parse_control_node(nodes: Array[GdxNode]):
 		elif lexer.peek().type == GdxLexer.TokenType.Identifier:
 			while token.type == GdxLexer.TokenType.OpenTag:
 				if !_parse_control_node(ctrl_node.nodes): return false
-				if _expect(GdxLexer.TokenType.OpenTag, meta):
+				if expect(GdxLexer.TokenType.OpenTag, meta):
 					if lexer.peek().type == GdxLexer.TokenType.FwdSlash:
 						token = lexer.next()
 						token = lexer.next()
-						if _expect(GdxLexer.TokenType.Identifier, meta):
+						if expect(GdxLexer.TokenType.Identifier, meta):
 							var identifier = token.text
 							if identifier == ctrl_node.name:
 								token = lexer.next()
-								if !_take(GdxLexer.TokenType.CloseTag, meta): return false
+								if !take(GdxLexer.TokenType.CloseTag, meta): return false
 								nodes.push_back(ctrl_node)
 								return true
 							else:
@@ -204,17 +201,17 @@ func _parse_control_node(nodes: Array[GdxNode]):
 	return true
 
 func _parse_control_node_param(params: Array[GdxCtrlNodeParam]):
-	var meta = " while parsing node param"
+	var meta = "while parsing node param"
 	var param_name = token.text
 
-	if !_take(GdxLexer.TokenType.Identifier, meta): return false
+	if !take(GdxLexer.TokenType.Identifier, meta): return false
 
 	var is_bound = false
 	if token.type == GdxLexer.TokenType.Binding:
 		token = lexer.next()
 		is_bound = true
 
-	if !_take(GdxLexer.TokenType.Assign, meta): return false
+	if !take(GdxLexer.TokenType.Assign, meta): return false
 
 	var param_value = token
 
@@ -222,8 +219,8 @@ func _parse_control_node_param(params: Array[GdxCtrlNodeParam]):
 		var lex := GdxLexer.new(param_value.text)
 		var tok := lex.next()
 		param_value = tok
-		_take(GdxLexer.TokenType.Text)
-	elif !_take(GdxLexer.TokenType.Text, meta):
+		take(GdxLexer.TokenType.Text)
+	elif !take(GdxLexer.TokenType.Text, meta):
 		return false
 
 	var param = GdxCtrlNodeParam.new()
@@ -235,24 +232,23 @@ func _parse_control_node_param(params: Array[GdxCtrlNodeParam]):
 	return true
 
 func _parse_control_node_directive(directives: Array[GdxCtrlNodeDirective]):
-	var meta = " while parsing node directive"
+	var meta = "while parsing node directive"
 
-	if !_take(GdxLexer.TokenType.Binding, meta): return false
+	if !take(GdxLexer.TokenType.Binding, meta): return false
 
 	var param_name = token.text
-	if !_take(GdxLexer.TokenType.Identifier, meta): return false
-	if !_take(GdxLexer.TokenType.Assign, meta): return false
+	if !take(GdxLexer.TokenType.Identifier, meta): return false
+	if !take(GdxLexer.TokenType.Assign, meta): return false
 
 	var lex := GdxLexer.new(token.text)
 	var expr_parser := GdxExpressionParser.new()
-	expr_parser.supress_errors = true
 	var param_value = expr_parser.parse(lex)
 
 	if not param_value:
 		param_value = GdxCtrlExpression.new()
 		param_value.left = GdxLexer.new(token.text).next()
 
-	if !_take(GdxLexer.TokenType.Text, meta):
+	if !take(GdxLexer.TokenType.Text, meta):
 		return false
 
 	var param = GdxCtrlNodeDirective.new()
