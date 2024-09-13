@@ -8,9 +8,10 @@ static func render_text(text: String, root_node: Node, bindings: Variant = {}) -
 	var out = GdxRenderOutput.new()
 	var parser := GdxParser.new()
 	var root := parser.parse(GdxLexer.new(text))
+	var vars = {}
 	if parser.errors.size() == 0:
 		for n in root.nodes:
-			var node = _render_node(root_node, n, bindings, out)
+			var node = _render_node(root_node, n, bindings, out, false, vars)
 			out.nodes.push_back(node)
 		return out
 	else:
@@ -32,18 +33,25 @@ static var _directive_map: Dictionary = {
 	"for" = _for_directive
 }
 
-static func _render_node(root: Node, n: GdxParser.GdxCtrlNode, bindings: Variant, out: GdxRenderOutput, skip_directives: bool = false):
+static func _render_node(root: Node, n: GdxParser.GdxCtrlNode, bindings: Variant, out: GdxRenderOutput, skip_directives: bool, vars: Dictionary):
 	var result: Node
 
-	if _control_map.has(n.name):
-		result = _control_map.get(n.name).new()
+	if not _control_map.has(n.name):
+		printerr("Control with type \"" + n.name + "\" not found")
+		return
+
+	result = _control_map.get(n.name).new()
+	if n.directives.size() == 0 or skip_directives:
 		for param in n.params:
 			if param.bound:
 				if param.key == "ref":
 					out.refs[param.value.text] = result
 				else:
 					if param.value.type == GdxLexer.TokenType.Identifier:
-						result.set(param.key, bindings[param.value.text])
+						if vars.has(param.value.text):
+							result.set(param.key, vars[param.value.text])
+						else:
+							result.set(param.key, bindings[param.value.text])
 					else:
 						result.set(param.key, _token_to_value(param.value))
 			else:
@@ -52,20 +60,18 @@ static func _render_node(root: Node, n: GdxParser.GdxCtrlNode, bindings: Variant
 					result.set(param.key, res)
 				else:
 					result.set(param.key, param.value.text)
-		if not skip_directives:
-			for directive in n.directives:
-				if _directive_map.has(directive.name):
-					_directive_map[directive.name].call(root, n, directive.value, bindings, out)
-				else:
-					printerr("Directive with name \"" + directive.name + "\" not found")
-		for n2 in n.nodes:
-			_render_node(result, n2, bindings, out)
-		if skip_directives or n.directives.size() == 0:
-			root.add_child(result)
-	else:
-		printerr("Control with type \"" + n.name + "\" not found")
+	if not skip_directives:
+		for directive in n.directives:
+			if _directive_map.has(directive.name):
+				_directive_map[directive.name].call(root, n, directive.value, bindings, out, vars)
+			else:
+				printerr("Directive with name \"" + directive.name + "\" not found")
+	for n2 in n.nodes:
+		_render_node(result, n2, bindings, out, false, vars)
+	if skip_directives or n.directives.size() == 0:
+		root.add_child(result)
 
-static func _for_directive(root: Node, node: GdxParser.GdxCtrlNode, expr: GdxParser.GdxCtrlExpression, bindings: Variant, out: GdxRenderOutput):
+static func _for_directive(root: Node, node: GdxParser.GdxCtrlNode, expr: GdxParser.GdxCtrlExpression, bindings: Variant, out: GdxRenderOutput, vars: Dictionary):
 	if not expr:
 		printerr("Directive expression is empty")
 		return
@@ -85,7 +91,11 @@ static func _for_directive(root: Node, node: GdxParser.GdxCtrlNode, expr: GdxPar
 	var count = _token_to_value(expr.right)
 
 	for i in range(count):
-		_render_node(root, node, bindings, out, true)
+		var next_vars = {
+			expr.left.text: i
+		}
+		next_vars.merge(vars)
+		_render_node(root, node, bindings, out, true, next_vars)
 
 static func _token_to_value(token: GdxLexer.Token):
 	if token.type == GdxLexer.TokenType.Identifier or token.type == GdxLexer.TokenType.Keyword:
