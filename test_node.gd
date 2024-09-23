@@ -13,7 +13,7 @@ func _ready() -> void:
 			<Label text="Hello \'world\'" position:="pos" />
 			<Label text="Hello world" />
 			<Control>
-				<Button text:="text" position:="pos2" ref:="btn" />
+				<Button text:="text" position:="pos2" size:="Vector2(100, 100)" ref:="btn" />
 			</Control>
 			<ColorRect :for="i in 5" name:="i" size:="rect_size * 2" visible:="false" />
 			# <HBox anchor_left:="0.0" anchor_right:="1.0">
