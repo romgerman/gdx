@@ -86,7 +86,7 @@ class GdxCtrlNode extends GdxNode:
 class GdxCtrlNodeParam:
 	var value_type: GdxLexer.TokenType = GdxLexer.TokenType.Text
 	var key: String
-	var value: GdxLexer.Token
+	var value: String
 	var bound: bool = false
 
 class GdxCtrlNodeDirective:
@@ -213,14 +213,9 @@ func _parse_control_node_param(params: Array[GdxCtrlNodeParam]):
 
 	if !take(GdxLexer.TokenType.Assign, meta): return false
 
-	var param_value = token
+	var param_value = token.text
 
-	if is_bound:
-		var lex := GdxLexer.new(param_value.text)
-		var tok := lex.next()
-		param_value = tok
-		take(GdxLexer.TokenType.Text)
-	elif !take(GdxLexer.TokenType.Text, meta):
+	if !take(GdxLexer.TokenType.Text, meta):
 		return false
 
 	var param = GdxCtrlNodeParam.new()

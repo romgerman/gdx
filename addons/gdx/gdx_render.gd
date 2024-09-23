@@ -4,7 +4,7 @@ class GdxRenderOutput:
 	var refs: Dictionary = {}
 	var nodes: Array[Node] = []
 
-static func render_text(text: String, root_node: Node, bindings: Variant = {}) -> GdxRenderOutput:
+static func render_text(text: String, root_node: Node, bindings: Dictionary = {}) -> GdxRenderOutput:
 	var out = GdxRenderOutput.new()
 	var parser := GdxParser.new()
 	var root := parser.parse(GdxLexer.new(text))
@@ -33,7 +33,7 @@ static var _directive_map: Dictionary = {
 	"for" = _for_directive
 }
 
-static func _render_node(root: Node, n: GdxParser.GdxCtrlNode, bindings: Variant, out: GdxRenderOutput, skip_directives: bool, vars: Dictionary):
+static func _render_node(root: Node, n: GdxParser.GdxCtrlNode, bindings: Dictionary, out: GdxRenderOutput, skip_directives: bool, vars: Dictionary):
 	var result: Node
 
 	if not _control_map.has(n.name):
@@ -45,21 +45,22 @@ static func _render_node(root: Node, n: GdxParser.GdxCtrlNode, bindings: Variant
 		for param in n.params:
 			if param.bound:
 				if param.key == "ref":
-					out.refs[param.value.text] = result
+					out.refs[param.value] = result
 				else:
-					if param.value.type == GdxLexer.TokenType.Identifier:
-						if vars.has(param.value.text):
-							result.set(param.key, vars[param.value.text])
-						else:
-							result.set(param.key, bindings[param.value.text])
-					else:
-						result.set(param.key, _token_to_value(param.value))
+					var expr = Expression.new()
+					var expr_vars = bindings.keys()
+					expr_vars.append_array(vars.keys())
+					expr.parse(param.value, expr_vars)
+					var expr_values = bindings.values()
+					expr_values.append_array(vars.values())
+					var expr_res = expr.execute(expr_values)
+					result.set(param.key, expr_res)
 			else:
-				if "res://" in param.value.text:
-					var res = ResourceLoader.load(param.value.text)
+				if "res://" in param.value:
+					var res = ResourceLoader.load(param.value)
 					result.set(param.key, res)
 				else:
-					result.set(param.key, param.value.text)
+					result.set(param.key, param.value)
 	if not skip_directives:
 		for directive in n.directives:
 			if _directive_map.has(directive.name):

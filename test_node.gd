@@ -15,11 +15,16 @@ func _ready() -> void:
 			<Control>
 				<Button text:="text" position:="pos2" ref:="btn" />
 			</Control>
-			<ColorRect :for="i in 5" name:="i" size:="rect_size" visible:="false" />
+			<ColorRect :for="i in 5" name:="i" size:="rect_size * 2" visible:="false" />
 			# <HBox anchor_left:="0.0" anchor_right:="1.0">
 			# </HBox>
 		</Control>
-	', self, Model.new())
+	', self, {
+		"pos" = Vector2(100, 100),
+		"pos2" = Vector2(200, 200),
+		"text" = "Hello \"world\"",
+		"rect_size" = Vector2(50, 20),
+	})
 
 	if not output: return
 
