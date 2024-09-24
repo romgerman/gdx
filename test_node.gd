@@ -9,7 +9,16 @@ func render_ui(hello: String) -> GdxRender.GdxRenderOutput:
 			<Control>
 				<Button text:="btn_text" position:="pos2" size:="Vector2(100, 100)" ref:="btn" />
 			</Control>
-			<ColorRect :for="i in 5" name:="i" size:="rect_size * 2" visible:="false" />
+			<Control ref:="health">
+				<ColorRect
+					:for="i in 5"
+					name:="i"
+					size:="Vector2(50, 20)"
+					position:="Vector2(60, 0) * i + Vector2(0, 30)"
+					visible:="true"
+					modulate:="h_mod"
+				/>
+			</Control>
 			# <HBox anchor_left:="0.0" anchor_right:="1.0">
 			# </HBox>
 		</Control>
@@ -17,7 +26,7 @@ func render_ui(hello: String) -> GdxRender.GdxRenderOutput:
 		"pos" = Vector2(100, 100),
 		"pos2" = Vector2(200, 200),
 		"btn_text" = "Hello \"" + hello + "\"",
-		"rect_size" = Vector2(50, 20),
+		"h_mod" = Color.TRANSPARENT
 	})
 
 func _ready() -> void:
@@ -34,3 +43,9 @@ func _ready() -> void:
 	btn.pressed.connect(func ():
 		print("Button pressed")
 	)
+
+	var health := output.refs.health as Control
+	var h_tw = create_tween().set_trans(Tween.TRANS_SINE)
+	for r in health.get_children():
+		h_tw.tween_property(r, "modulate", Color.WHITE, 0.15)
+	h_tw.play()
