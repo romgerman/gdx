@@ -19,14 +19,16 @@ func render_ui(hello: String) -> GdxRender.GdxRenderOutput:
 					modulate:="h_mod"
 				/>
 			</Control>
-			# <HBox anchor_left:="0.0" anchor_right:="1.0">
-			# </HBox>
+			<HBox anchor_left:="0.0" anchor_right:="1.0" position:="Vector2(0, 60)">
+				<ColorRect :for="i in 3" custom_minimum_size:="Vector2(50, 20)" color:="color" />
+			</HBox>
 		</Control>
 	', self, {
 		"pos" = Vector2(100, 100),
 		"pos2" = Vector2(200, 200),
 		"btn_text" = "Hello \"" + hello + "\"",
-		"h_mod" = Color.TRANSPARENT
+		"h_mod" = Color.TRANSPARENT,
+		"color" = Color.WHITE
 	})
 
 func _ready() -> void:
