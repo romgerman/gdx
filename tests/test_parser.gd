@@ -97,3 +97,13 @@ func test_parse_param_binding():
 	assert_eq(root.nodes[0].params[0].key, "param")
 	assert_eq(root.nodes[0].params[0].value, "test")
 	assert_eq(root.nodes[0].params[0].bound, true)
+
+func test_parse_directive_for():
+	var lex := GdxLexer.new('
+		<Control :for="i in 3" />
+	')
+	var parser := GdxParser.new()
+	var root = parser.parse(lex)
+
+	assert_eq(root.nodes[0].name, "Control")
+	assert_eq(root.nodes[0].directives.size() > 0, true)
