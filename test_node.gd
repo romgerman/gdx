@@ -11,7 +11,7 @@ func render_ui(hello: String) -> GdxRender.GdxRenderOutput:
 			</Control>
 			<Control ref:="health">
 				<ColorRect
-					:for="i in 5"
+					:for="i in count"
 					name:="i"
 					size:="Vector2(50, 20)"
 					position:="Vector2(60, 0) * i + Vector2(0, 30)"
@@ -28,7 +28,8 @@ func render_ui(hello: String) -> GdxRender.GdxRenderOutput:
 		"pos2" = Vector2(200, 200),
 		"btn_text" = "Hello \"" + hello + "\"",
 		"h_mod" = Color.TRANSPARENT,
-		"color" = Color.WHITE
+		"color" = Color.WHITE,
+		"count" = 5
 	})
 
 func _ready() -> void:

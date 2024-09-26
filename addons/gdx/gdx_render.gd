@@ -72,7 +72,7 @@ static func _render_node(root: Node, n: GdxParser.GdxCtrlNode, bindings: Diction
 	if skip_directives or n.directives.size() == 0:
 		root.add_child(result)
 
-static func _for_directive(root: Node, node: GdxParser.GdxCtrlNode, expr: GdxParser.GdxCtrlExpression, bindings: Variant, out: GdxRenderOutput, vars: Dictionary):
+static func _for_directive(root: Node, node: GdxParser.GdxCtrlNode, expr: GdxParser.GdxCtrlExpression, bindings: Dictionary, out: GdxRenderOutput, vars: Dictionary):
 	if not expr:
 		printerr("Directive expression is empty")
 		return
@@ -85,11 +85,21 @@ static func _for_directive(root: Node, node: GdxParser.GdxCtrlNode, expr: GdxPar
 		printerr("Expected Keyword (in) but got ", expr.op.token_type_name, "=", expr.text)
 		return
 
-	if expr.right.type != GdxLexer.TokenType.Number:
-		printerr("Expected Number but got ", expr.right.token_type_name, "=", expr.text)
+	if expr.right.type != GdxLexer.TokenType.Number and expr.right.type != GdxLexer.TokenType.Identifier:
+		printerr("Expected Number or Identifier but got ", expr.right.token_type_name, "=", expr.text)
 		return
 
-	var count = _token_to_value(expr.right)
+	var count = 0
+
+	if expr.right.type == GdxLexer.TokenType.Number:
+		count = _token_to_value(expr.right)
+	elif expr.right.type == GdxLexer.TokenType.Identifier:
+		if bindings.has(expr.right.text):
+			count = bindings[expr.right.text]
+		elif vars.has(expr.right.text):
+			count = bindings[expr.right.text]
+		else:
+			printerr("No variable or binding was found with name \"" + expr.right.text + "\"")
 
 	for i in range(count):
 		var next_vars = {
