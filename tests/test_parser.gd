@@ -7,7 +7,7 @@ func test_parse_self_closing_node():
 	var parser := GdxParser.new()
 	var root = parser.parse(lex)
 
-	assert_eq(root.nodes[0].type_name, "Control")
+	assert_eq(root.nodes[0].name, "Control")
 
 func test_parse_default_node():
 	var lex := GdxLexer.new('
@@ -16,7 +16,7 @@ func test_parse_default_node():
 	var parser := GdxParser.new()
 	var root = parser.parse(lex)
 
-	assert_eq(root.nodes[0].type_name, "Control")
+	assert_eq(root.nodes[0].name, "Control")
 
 func test_parse_nested_nodes():
 	var lex := GdxLexer.new('
@@ -27,8 +27,8 @@ func test_parse_nested_nodes():
 	var parser := GdxParser.new()
 	var root = parser.parse(lex)
 
-	assert_eq(root.nodes[0].type_name, "Control")
-	assert_eq(root.nodes[0].nodes[0].type_name, "Control2")
+	assert_eq(root.nodes[0].name, "Control")
+	assert_eq(root.nodes[0].nodes[0].name, "Control2")
 
 func test_parse_nested_nodes_2():
 	var lex := GdxLexer.new('
@@ -41,9 +41,9 @@ func test_parse_nested_nodes_2():
 	var parser := GdxParser.new()
 	var root = parser.parse(lex)
 
-	assert_eq(root.nodes[0].type_name, "Control")
-	assert_eq(root.nodes[0].nodes[0].type_name, "Control2")
-	assert_eq(root.nodes[0].nodes[0].nodes[0].type_name, "Control3")
+	assert_eq(root.nodes[0].name, "Control")
+	assert_eq(root.nodes[0].nodes[0].name, "Control2")
+	assert_eq(root.nodes[0].nodes[0].nodes[0].name, "Control3")
 
 func test_parse_nested_nodes_3():
 	var lex := GdxLexer.new('
@@ -58,11 +58,11 @@ func test_parse_nested_nodes_3():
 	var parser := GdxParser.new()
 	var root = parser.parse(lex)
 
-	assert_eq(root.nodes[0].type_name, "Control")
-	assert_eq(root.nodes[0].nodes[0].type_name, "Control2")
-	assert_eq(root.nodes[0].nodes[0].nodes[0].type_name, "Control3")
-	assert_eq(root.nodes[0].nodes[0].nodes[1].type_name, "Control3")
-	assert_eq(root.nodes[0].nodes[0].nodes[2].type_name, "Control3")
+	assert_eq(root.nodes[0].name, "Control")
+	assert_eq(root.nodes[0].nodes[0].name, "Control2")
+	assert_eq(root.nodes[0].nodes[0].nodes[0].name, "Control3")
+	assert_eq(root.nodes[0].nodes[0].nodes[1].name, "Control3")
+	assert_eq(root.nodes[0].nodes[0].nodes[2].name, "Control3")
 
 func test_parse_params():
 	var lex := GdxLexer.new('
@@ -71,7 +71,7 @@ func test_parse_params():
 	var parser := GdxParser.new()
 	var root = parser.parse(lex)
 
-	assert_eq(root.nodes[0].type_name, "Control")
+	assert_eq(root.nodes[0].name, "Control")
 	assert_eq(root.nodes[0].params[0].key, "param")
 	assert_eq(root.nodes[0].params[0].value, "test")
 
@@ -82,7 +82,7 @@ func test_parse_params_on_self_closing():
 	var parser := GdxParser.new()
 	var root = parser.parse(lex)
 
-	assert_eq(root.nodes[0].type_name, "Control")
+	assert_eq(root.nodes[0].name, "Control")
 	assert_eq(root.nodes[0].params[0].key, "param")
 	assert_eq(root.nodes[0].params[0].value, "test")
 
@@ -93,7 +93,7 @@ func test_parse_param_binding():
 	var parser := GdxParser.new()
 	var root = parser.parse(lex)
 
-	assert_eq(root.nodes[0].type_name, "Control")
+	assert_eq(root.nodes[0].name, "Control")
 	assert_eq(root.nodes[0].params[0].key, "param")
 	assert_eq(root.nodes[0].params[0].value, "test")
 	assert_eq(root.nodes[0].params[0].bound, true)
