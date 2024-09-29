@@ -27,5 +27,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: gdx-addon
+          name: gdx
           path: addons/gdx/
